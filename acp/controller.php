@@ -213,8 +213,7 @@ class controller
 
     protected function confirm($message, $fields)
     {
-        $fields['days'] = $this->request->variable('days', self::DEFAULT_DAYS);
-        $fields['limit'] = $this->request->variable('limit', self::DEFAULT_LIMIT);
+        $fields = array_merge($fields, $this->filter_params());
 
         confirm_box(false, $message, build_hidden_fields($fields));
 
@@ -556,10 +555,12 @@ class controller
 
     protected function display_lists()
     {
-        $days = max(1, min(365, $this->request->variable('days', self::DEFAULT_DAYS)));
-        $limit = $this->request->variable('limit', self::DEFAULT_LIMIT);
-        $limit = in_array($limit, array(25, 50, 100, 200), true) ? $limit : self::DEFAULT_LIMIT;
-        $since = time() - ($days * 86400);
+        $filters = $this->filter_params();
+        $days = $filters['days'];
+        $limit = $filters['limit'];
+        list($since, $until) = $this->time_window($filters);
+        $time_limit_topics = ' AND t.topic_time >= ' . $since . ($until !== null ? ' AND t.topic_time <= ' . $until : '');
+        $time_limit_posts = ' AND p.post_time >= ' . $since . ($until !== null ? ' AND p.post_time <= ' . $until : '');
         $forum_in = $this->db->sql_in_set('forum_id', $this->get_forums());
         $can_delete_users = $this->can_delete_users();
         $self_id = (int) $this->user->data['user_id'];
@@ -572,7 +573,7 @@ class controller
             LEFT JOIN ' . FORUMS_TABLE . ' f ON (f.forum_id = t.forum_id)
             LEFT JOIN ' . POSTS_TABLE . ' p ON (p.post_id = t.topic_first_post_id)
             WHERE ' . str_replace('forum_id', 't.forum_id', $forum_in) . "
-                AND t.topic_time >= $since
+                $time_limit_topics
             ORDER BY t.topic_time DESC";
         $result = $this->db->sql_query_limit($sql, $limit);
         while ($row = $this->db->sql_fetchrow($result))
@@ -587,8 +588,8 @@ class controller
                 'TIME' => $this->user->format_date($row['topic_time']),
                 'REPLIES' => max(0, (int) $row['topic_posts_approved'] - 1),
                 'U_TOPIC' => append_sid(generate_board_url() . '/viewtopic.' . $this->php_ext, 't=' . (int) $row['topic_id']),
-                'U_DELETE_TOPIC' => $this->action_url('delete_topic', array('t' => (int) $row['topic_id']), $days, $limit),
-            ) + $this->user_actions($uid, $days, $limit, $can_delete_users, $self_id, $target_cache));
+                'U_DELETE_TOPIC' => $this->action_url('delete_topic', array('t' => (int) $row['topic_id']), $filters),
+            ) + $this->user_actions($uid, $filters, $can_delete_users, $self_id, $target_cache));
         }
         $this->db->sql_freeresult($result);
 
@@ -600,7 +601,7 @@ class controller
             LEFT JOIN ' . FORUMS_TABLE . ' f ON (f.forum_id = p.forum_id)
             LEFT JOIN ' . USERS_TABLE . ' u ON (u.user_id = p.poster_id)
             WHERE ' . str_replace('forum_id', 'p.forum_id', $forum_in) . "
-                AND p.post_time >= $since
+                $time_limit_posts
             ORDER BY p.post_time DESC";
         $result = $this->db->sql_query_limit($sql, $limit);
         while ($row = $this->db->sql_fetchrow($result))
@@ -616,8 +617,8 @@ class controller
                 'IP' => $row['poster_ip'],
                 'TIME' => $this->user->format_date($row['post_time']),
                 'U_POST' => append_sid(generate_board_url() . '/viewtopic.' . $this->php_ext, 'p=' . (int) $row['post_id']) . '#p' . (int) $row['post_id'],
-                'U_DELETE_POST' => $this->action_url('delete_post', array('p' => (int) $row['post_id']), $days, $limit),
-            ) + $this->user_actions($uid, $days, $limit, $can_delete_users, $self_id, $target_cache));
+                'U_DELETE_POST' => $this->action_url('delete_post', array('p' => (int) $row['post_id']), $filters),
+            ) + $this->user_actions($uid, $filters, $can_delete_users, $self_id, $target_cache));
         }
         $this->db->sql_freeresult($result);
 
@@ -641,11 +642,13 @@ class controller
             'U_ACTION' => $this->u_action,
             'S_CAN_DELETE_USERS' => $can_delete_users,
             'MODRECENT_DAYS' => $days,
+            'MODRECENT_DATE_FROM' => isset($filters['date_from']) ? $filters['date_from'] : '',
+            'MODRECENT_DATE_TO' => isset($filters['date_to']) ? $filters['date_to'] : '',
             'MODRECENT_LIMIT' => $limit,
         ));
     }
 
-    protected function user_actions($uid, $days, $limit, $can_delete_users, $self_id, array &$cache)
+    protected function user_actions($uid, array $filters, $can_delete_users, $self_id, array &$cache)
     {
         if (!isset($cache[$uid]))
         {
@@ -660,14 +663,77 @@ class controller
         return array(
             'S_CAN_USER_ACTIONS' => true,
             'S_CAN_DELETE_USER' => $can_delete_users,
-            'U_DELETE_USER_POSTS' => $this->action_url('delete_user_posts', array('u' => $uid), $days, $limit),
-            'U_DELETE_USER' => $this->action_url('delete_user', array('u' => $uid), $days, $limit),
+            'U_DELETE_USER_POSTS' => $this->action_url('delete_user_posts', array('u' => $uid), $filters),
+            'U_DELETE_USER' => $this->action_url('delete_user', array('u' => $uid), $filters),
         );
     }
 
-    protected function action_url($action, $params, $days, $limit)
+    protected function action_url($action, $params, array $filters)
     {
-        return $this->list_url(array_merge(array('action' => $action), $params, array('days' => $days, 'limit' => $limit)));
+        return $this->list_url(array_merge(array('action' => $action), $params, $filters));
+    }
+
+    /**
+     * Current filter values, sanitised. Date values are only present when valid.
+     */
+    protected function filter_params()
+    {
+        $limit = $this->request->variable('limit', self::DEFAULT_LIMIT);
+
+        $filters = array(
+            'days' => max(1, min(365, $this->request->variable('days', self::DEFAULT_DAYS))),
+            'limit' => in_array($limit, array(25, 50, 100, 200), true) ? $limit : self::DEFAULT_LIMIT,
+        );
+
+        foreach (array('date_from', 'date_to') as $key)
+        {
+            $value = trim($this->request->variable($key, ''));
+            if ($this->parse_date($value, false) !== null)
+            {
+                $filters[$key] = $value;
+            }
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Turn a YYYY-MM-DD string into a timestamp in the user's timezone
+     * (start or end of that day), or null when it is not a valid date.
+     */
+    protected function parse_date($value, $end_of_day)
+    {
+        if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) || !checkdate((int) $m[2], (int) $m[3], (int) $m[1]))
+        {
+            return null;
+        }
+
+        return $this->user->create_datetime($value . ($end_of_day ? ' 23:59:59' : ' 00:00:00'))->getTimestamp();
+    }
+
+    /**
+     * Time window for the lists: an explicit date range wins over "last N days".
+     *
+     * @return array [from timestamp, to timestamp or null for "now"]
+     */
+    protected function time_window(array $filters)
+    {
+        if (!isset($filters['date_from']) && !isset($filters['date_to']))
+        {
+            return array(time() - ($filters['days'] * 86400), null);
+        }
+
+        $from = isset($filters['date_from']) ? $this->parse_date($filters['date_from'], false) : 0;
+        $to = isset($filters['date_to']) ? $this->parse_date($filters['date_to'], true) : null;
+
+        if ($to !== null && $from > $to)
+        {
+            // Dates entered the wrong way round: swap the days.
+            $from = isset($filters['date_to']) ? $this->parse_date($filters['date_to'], false) : 0;
+            $to = $this->parse_date($filters['date_from'], true);
+        }
+
+        return array($from, $to);
     }
 
     protected function excerpt($post_text)

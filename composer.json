@@ -3,7 +3,7 @@
     "type": "phpbb-extension",
     "description": "Admin tool to review the latest topics and posts and clean up spam in bulk: delete topics, posts, all posts by an author, or the author's account.",
     "homepage": "https://ashishpatel.dev",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "time": "2026-10-19",
     "license": "GPL-2.0-only",
     "authors": [

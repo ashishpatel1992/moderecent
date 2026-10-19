@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 — 2026-10-19
+
+- Added an optional **From / To** date range filter (in the user's timezone). When set it overrides the "last N days" preset, and it is kept through every action and confirmation.
+
 ## 1.0.0 — 2026-10-19
 
 - Initial release.

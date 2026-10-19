@@ -9,11 +9,18 @@
 				<select name="days"><!-- BEGIN days_options --><option value="{days_options.VALUE}"<!-- IF days_options.SELECTED --> selected="selected"<!-- ENDIF -->>{days_options.VALUE}</option><!-- END days_options --></select>
 				{L_MODRECENT_DAYS}
 			</label>
+			<label>{L_MODRECENT_DATE_FROM}
+				<input type="date" name="date_from" value="{MODRECENT_DATE_FROM}" />
+			</label>
+			<label>{L_MODRECENT_DATE_TO}
+				<input type="date" name="date_to" value="{MODRECENT_DATE_TO}" />
+			</label>
 			<label>{L_MODRECENT_LIMIT}
 				<select name="limit"><!-- BEGIN limit_options --><option value="{limit_options.VALUE}"<!-- IF limit_options.SELECTED --> selected="selected"<!-- ENDIF -->>{limit_options.VALUE}</option><!-- END limit_options --></select>
 			</label>
 			<input type="submit" class="button1" value="{L_MODRECENT_APPLY}" />
 	</fieldset>
+	<p><small>{L_MODRECENT_DATE_HINT}</small></p>
 </form>
 
 <div>
@@ -24,6 +31,8 @@
 		<input type="hidden" name="type" value="topics" />
 		<input type="hidden" name="days" value="{MODRECENT_DAYS}" />
 		<input type="hidden" name="limit" value="{MODRECENT_LIMIT}" />
+		<input type="hidden" name="date_from" value="{MODRECENT_DATE_FROM}" />
+		<input type="hidden" name="date_to" value="{MODRECENT_DATE_TO}" />
 		<table class="table1 zebra-table">
 			<thead>
 				<tr>
@@ -75,6 +84,8 @@
 		<input type="hidden" name="type" value="posts" />
 		<input type="hidden" name="days" value="{MODRECENT_DAYS}" />
 		<input type="hidden" name="limit" value="{MODRECENT_LIMIT}" />
+		<input type="hidden" name="date_from" value="{MODRECENT_DATE_FROM}" />
+		<input type="hidden" name="date_to" value="{MODRECENT_DATE_TO}" />
 		<table class="table1 zebra-table">
 			<thead>
 				<tr>

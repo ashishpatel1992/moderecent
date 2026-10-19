@@ -7,7 +7,7 @@ An administrator tool for phpBB 3.3 that lists the **latest topics and posts** i
 ## Features
 
 - New ACP page: **Extensions → Moderate Recent → Moderate recent content**
-- Two lists — recent topics and recent posts — for the last 1–365 days, 25–200 rows each
+- Two lists — recent topics and recent posts — for the last 1–365 days **or an explicit From/To date range**, 25–200 rows each
 - Shows title, forum, author, IP address, date and (for posts) a short excerpt
 - Per-row actions:
   - Delete topic / Delete post
@@ -47,7 +47,7 @@ Moderators without administrator permissions do not get access to the page.
 ## Usage
 
 1. Open **Extensions → Moderate Recent → Moderate recent content**.
-2. Choose how many days to show and how many rows per list, then click **Apply**.
+2. Choose how many days to show — or set a **From** and/or **To** date, which takes priority — and how many rows per list, then click **Apply**.
 3. Use the links on a row for a single action, or tick rows and pick an action from **With selected…**, then click **Go**.
 4. Review the confirmation message and confirm.
 
