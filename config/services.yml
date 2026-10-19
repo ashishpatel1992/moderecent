@@ -1,0 +1,18 @@
+services:
+    ashishpatel.modrecent.admin_controller:
+        class: ashishpatel\modrecent\acp\controller
+        public: true
+        arguments:
+            - '@auth'
+            - '@dbal.conn'
+            - '@log'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+
+    ashishpatel.modrecent.listener:
+        class: ashishpatel\modrecent\event\listener
+        tags:
+            - { name: event.listener }

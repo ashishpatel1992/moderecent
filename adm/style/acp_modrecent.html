@@ -1,0 +1,121 @@
+<!-- INCLUDE overall_header.html -->
+
+<h1>{L_ACP_MODRECENT_TITLE}</h1>
+<p>{L_MODRECENT_INTRO}</p>
+
+<form method="post" action="{U_ACTION}" id="modrecent_filter">
+	<fieldset>
+			<label>{L_MODRECENT_SHOW_LAST}
+				<select name="days"><!-- BEGIN days_options --><option value="{days_options.VALUE}"<!-- IF days_options.SELECTED --> selected="selected"<!-- ENDIF -->>{days_options.VALUE}</option><!-- END days_options --></select>
+				{L_MODRECENT_DAYS}
+			</label>
+			<label>{L_MODRECENT_LIMIT}
+				<select name="limit"><!-- BEGIN limit_options --><option value="{limit_options.VALUE}"<!-- IF limit_options.SELECTED --> selected="selected"<!-- ENDIF -->>{limit_options.VALUE}</option><!-- END limit_options --></select>
+			</label>
+			<input type="submit" class="button1" value="{L_MODRECENT_APPLY}" />
+	</fieldset>
+</form>
+
+<div>
+	<div>
+		<h2>{L_MODRECENT_RECENT_TOPICS}</h2>
+		<form method="post" action="{U_ACTION}" id="modrecent_topics_form">
+		<input type="hidden" name="action" value="bulk" />
+		<input type="hidden" name="type" value="topics" />
+		<input type="hidden" name="days" value="{MODRECENT_DAYS}" />
+		<input type="hidden" name="limit" value="{MODRECENT_LIMIT}" />
+		<table class="table1 zebra-table">
+			<thead>
+				<tr>
+					<th style="width:1%"><input type="checkbox" title="{L_MODRECENT_SELECT_ALL}" onclick="var c=this.checked;var b=this.form.querySelectorAll('input[name=&quot;ids[]&quot;]');for(var i=0;i<b.length;i++){b[i].checked=c;}" /></th>
+					<th>{L_MODRECENT_COL_TITLE}</th><th>{L_MODRECENT_COL_FORUM}</th><th>{L_MODRECENT_COL_AUTHOR}</th><th>{L_MODRECENT_COL_IP}</th><th>{L_MODRECENT_COL_DATE}</th><th>{L_MODRECENT_COL_ACTIONS}</th>
+				</tr>
+			</thead>
+			<tbody>
+			<!-- BEGIN topics -->
+				<tr>
+					<td><input type="checkbox" name="ids[]" value="{topics.ID}" /></td>
+					<td><a href="{topics.U_TOPIC}">{topics.TITLE}</a> <small>({topics.REPLIES})</small></td>
+					<td>{topics.FORUM}</td>
+					<td>{topics.USER}</td>
+					<td>{topics.IP}</td>
+					<td>{topics.TIME}</td>
+					<td>
+						<a href="{topics.U_DELETE_TOPIC}">{L_MODRECENT_DELETE_TOPIC}</a>
+						<!-- IF topics.S_CAN_USER_ACTIONS -->
+						<br /><a href="{topics.U_DELETE_USER_POSTS}">{L_MODRECENT_DELETE_USER_POSTS}</a>
+						<!-- IF topics.S_CAN_DELETE_USER --><br /><a href="{topics.U_DELETE_USER}">{L_MODRECENT_DELETE_USER}</a><!-- ENDIF -->
+						<!-- ENDIF -->
+					</td>
+				</tr>
+			<!-- BEGINELSE -->
+				<tr><td colspan="7">{L_MODRECENT_NO_TOPICS}</td></tr>
+			<!-- END topics -->
+			</tbody>
+		</table>
+		<fieldset class="quick">
+			<label for="bulk_topics">{L_MODRECENT_BULK_ACTION}</label>
+			<select name="bulk_action" id="bulk_topics">
+				<option value="">—</option>
+				<option value="delete_selected">{L_MODRECENT_BULK_DELETE_TOPICS}</option>
+				<option value="delete_users_posts">{L_MODRECENT_BULK_DELETE_USER_POSTS}</option>
+				<!-- IF S_CAN_DELETE_USERS --><option value="delete_users">{L_MODRECENT_BULK_DELETE_USERS}</option><!-- ENDIF -->
+			</select>
+			<input type="submit" class="button2" value="{L_MODRECENT_BULK_GO}" />
+		</fieldset>
+		</form>
+	</div>
+</div>
+
+<div>
+	<div>
+		<h2>{L_MODRECENT_RECENT_POSTS}</h2>
+		<form method="post" action="{U_ACTION}" id="modrecent_posts_form">
+		<input type="hidden" name="action" value="bulk" />
+		<input type="hidden" name="type" value="posts" />
+		<input type="hidden" name="days" value="{MODRECENT_DAYS}" />
+		<input type="hidden" name="limit" value="{MODRECENT_LIMIT}" />
+		<table class="table1 zebra-table">
+			<thead>
+				<tr>
+					<th style="width:1%"><input type="checkbox" title="{L_MODRECENT_SELECT_ALL}" onclick="var c=this.checked;var b=this.form.querySelectorAll('input[name=&quot;ids[]&quot;]');for(var i=0;i<b.length;i++){b[i].checked=c;}" /></th>
+					<th>{L_MODRECENT_COL_TITLE}</th><th>{L_MODRECENT_COL_FORUM}</th><th>{L_MODRECENT_COL_AUTHOR}</th><th>{L_MODRECENT_COL_IP}</th><th>{L_MODRECENT_COL_DATE}</th><th>{L_MODRECENT_COL_ACTIONS}</th>
+				</tr>
+			</thead>
+			<tbody>
+			<!-- BEGIN posts -->
+				<tr>
+					<td><input type="checkbox" name="ids[]" value="{posts.ID}" /></td>
+					<td><a href="{posts.U_POST}">{posts.TITLE}</a><br /><small>{posts.EXCERPT}</small></td>
+					<td>{posts.FORUM}</td>
+					<td>{posts.USER}</td>
+					<td>{posts.IP}</td>
+					<td>{posts.TIME}</td>
+					<td>
+						<a href="{posts.U_DELETE_POST}">{L_MODRECENT_DELETE_POST}</a>
+						<!-- IF posts.S_CAN_USER_ACTIONS -->
+						<br /><a href="{posts.U_DELETE_USER_POSTS}">{L_MODRECENT_DELETE_USER_POSTS}</a>
+						<!-- IF posts.S_CAN_DELETE_USER --><br /><a href="{posts.U_DELETE_USER}">{L_MODRECENT_DELETE_USER}</a><!-- ENDIF -->
+						<!-- ENDIF -->
+					</td>
+				</tr>
+			<!-- BEGINELSE -->
+				<tr><td colspan="7">{L_MODRECENT_NO_POSTS}</td></tr>
+			<!-- END posts -->
+			</tbody>
+		</table>
+		<fieldset class="quick">
+			<label for="bulk_posts">{L_MODRECENT_BULK_ACTION}</label>
+			<select name="bulk_action" id="bulk_posts">
+				<option value="">—</option>
+				<option value="delete_selected">{L_MODRECENT_BULK_DELETE_POSTS}</option>
+				<option value="delete_users_posts">{L_MODRECENT_BULK_DELETE_USER_POSTS}</option>
+				<!-- IF S_CAN_DELETE_USERS --><option value="delete_users">{L_MODRECENT_BULK_DELETE_USERS}</option><!-- ENDIF -->
+			</select>
+			<input type="submit" class="button2" value="{L_MODRECENT_BULK_GO}" />
+		</fieldset>
+		</form>
+	</div>
+</div>
+
+<!-- INCLUDE overall_footer.html -->
